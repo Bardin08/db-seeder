@@ -1,3 +1,3 @@
 ﻿namespace DbSeeder;
 
-public record SqlToken();
+public record SqlToken(SqlTokenType Type, string Value);
