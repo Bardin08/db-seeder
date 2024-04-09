@@ -113,9 +113,13 @@ public class SqlLexer(string sqlScript)
 
     private SqlTokenType GetTokenType(string tokenValue)
     {
-        // It is not the responsibility of the lexer to add checks for all possible token types.
-        // The lexer should simply recognize and highlight tokens,
-        // and the determination of their type should already take place at a higher level, for example, during parsing.
+        if (tokenValue.Equals("null", StringComparison.OrdinalIgnoreCase) &&
+            _tokens.LastOrDefault() is {Type: SqlTokenType.Identifier})
+        {
+            // NULL after identifier is also an identifier (ex. NOT NULL)
+            return SqlTokenType.Identifier;
+        }
+
         return IsKeyword(tokenValue)
             ? SqlTokenType.Keyword
             : SqlTokenType.Identifier;
@@ -129,6 +133,6 @@ public class SqlLexer(string sqlScript)
     private bool IsOperator(string token)
     {
         // We consider operators to be any characters other than letters, numbers, and spaces
-        return !Regex.IsMatch(token, @"[\w\s]");
+        return !Regex.IsMatch(token, @"[\w\s]") || Constants.Operators.Contains(token);
     }
 }
