@@ -18,7 +18,7 @@ The syntax tree comprises various node types, each representing a different cons
 |  ColumnDataType  | Specifies the data type of a column.                          |
 | ColumnConstraint | Represents constraints applied to a column, such as NOT NULL. |
 
-![](../docs/imgs/ast-example.png)
+![](./imgs/ast-example.png)
 
 ### Syntax Tree Building Rules:
 
@@ -28,8 +28,8 @@ Schema as a Plain Old CLR Object (POCO).
 
 1. **Rule 1:** Every SQL script starts with a `Root` node. From there, we traverse and build the tree based on the type
    and value of each encountered token.
-2. **Rule 2:** A `CreateStatement` node is added upon encountering a "create" keyword, indicating the start of a create
-   statement.
+2. **Rule 2:** A `CreateStatement` node is added upon encountering a "create" keyword, indicating the start of a
+   creation statement.
 3. **Rule 3:** When a "table" keyword follows a `CreateStatement`, a `CreateTable` node is added, marking the creation
    of a new table.
 4. **Rule 4:** Identifiers immediately following a `CreateTable` node specify the table's root (`TableRoot`) and its
@@ -37,4 +37,4 @@ Schema as a Plain Old CLR Object (POCO).
 5. **Rule 5:** Subsequent identifiers indicate column names (`Column` nodes), data types (`ColumnDataType` nodes), and
    constraints (`ColumnConstraint` nodes) as the structure is built out.
 
-![](../docs/imgs/ast-building.png)
+![](./imgs/ast-building.png)
