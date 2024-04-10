@@ -1,18 +1,50 @@
-﻿namespace DbSeeder;
+﻿using DbSeeder.SqlParser;
+using DbSeeder.SqlParser.SyntaxTree;
 
-class Program
+namespace DbSeeder;
+
+internal static class Program
 {
-    static void Main(string[] args)
+    private static void Main()
     {
-        var sqlScript = "CREATE TABLE Users (Id INT PRIMARY KEY, Name VARCHAR(255.55));";
+        const string sqlScript =
+            """
+            CREATE TABLE Users (
+                Id INT PRIMARY KEY,
+                Name VARCHAR(122) NOT NULL UNIQUE,
+                ProfileId UUID FOREIGN KEY
+            );
+
+            CREATE TABLE Profiles (
+                Id UUID PRIMARY KEY,
+                Nickname VARCHAR(122) NOT NULL UNIQUE,
+            );
+            """;
         var lexer = new SqlLexer(sqlScript);
         var tokens = lexer.Tokenize();
-        
-        // Виведення токенів
+
         Console.WriteLine("Tokens:");
         foreach (var token in tokens)
         {
             Console.WriteLine(token.Type + ": " + token.Value);
+        }
+
+        var astBuilder = new AstBuilder(tokens);
+        var astRoot = astBuilder.BuildSyntaxTree();
+
+        PrintSyntaxTree(astRoot);
+
+        // var schemaBuilder = new SqlSchemaBuilder();
+        // schemaBuilder.BuildSchema(astRoot);
+        // Console.WriteLine();
+    }
+
+    private static void PrintSyntaxTree(SyntaxTreeNode? node, string indent = "")
+    {
+        Console.WriteLine($"{indent}{node.Value} --> ({node.Type})");
+        foreach (var child in node.Children)
+        {
+            PrintSyntaxTree(child, indent + "  ");
         }
     }
 }
