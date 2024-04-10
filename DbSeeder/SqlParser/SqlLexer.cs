@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DbSeeder;
+namespace DbSeeder.SqlParser;
 
 public class SqlLexer(string sqlScript)
 {
@@ -24,7 +24,7 @@ public class SqlLexer(string sqlScript)
                 var tokenValue = ReadIdentifier();
                 _tokens.Add(new SqlToken(GetTokenType(tokenValue), tokenValue));
             }
-            else if (Constants.Punctuation.Contains(currentChar))
+            else if (ParserConstants.Punctuation.Contains(currentChar))
             {
                 var tokenValue = currentChar.ToString();
                 _tokens.Add(new SqlToken(SqlTokenType.Punctuation, tokenValue));
@@ -127,12 +127,12 @@ public class SqlLexer(string sqlScript)
 
     private bool IsKeyword(string tokenValue)
     {
-        return Constants.Keywords.Contains(tokenValue, StringComparer.OrdinalIgnoreCase);
+        return ParserConstants.Keywords.Contains(tokenValue, StringComparer.OrdinalIgnoreCase);
     }
 
     private bool IsOperator(string token)
     {
         // We consider operators to be any characters other than letters, numbers, and spaces
-        return !Regex.IsMatch(token, @"[\w\s]") || Constants.Operators.Contains(token);
+        return !Regex.IsMatch(token, @"[\w\s]") || ParserConstants.Operators.Contains(token);
     }
 }

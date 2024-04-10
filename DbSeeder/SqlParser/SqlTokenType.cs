@@ -1,4 +1,4 @@
-﻿namespace DbSeeder;
+﻿namespace DbSeeder.SqlParser;
 
 /// <summary>
 /// Types of SQL tokens.

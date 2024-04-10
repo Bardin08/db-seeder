@@ -1,8 +1,8 @@
 ﻿using System.Buffers;
 
-namespace DbSeeder;
+namespace DbSeeder.SqlParser;
 
-public static class Constants
+public static class ParserConstants
 {
     // TODO: After .NET 9 release can be replaced with SearchValues<string>
     public static readonly HashSet<string> Keywords =
