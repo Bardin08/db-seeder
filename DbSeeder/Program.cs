@@ -1,5 +1,6 @@
 ﻿using DbSeeder.SqlParser;
 using DbSeeder.SqlParser.SyntaxTree;
+using DbSeeder.SqlParser.SyntaxTree.Validation;
 
 namespace DbSeeder;
 
@@ -33,6 +34,9 @@ internal static class Program
         var astRoot = astBuilder.BuildSyntaxTree();
 
         PrintSyntaxTree(astRoot);
+
+        var astValidator = new GenericTreeValidator();
+        astValidator.Validate(astRoot);
 
         // var schemaBuilder = new SqlSchemaBuilder();
         // schemaBuilder.BuildSchema(astRoot);
