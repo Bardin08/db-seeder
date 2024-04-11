@@ -1,4 +1,4 @@
-﻿namespace DbSeeder.SqlParser.SyntaxTree.Validation;
+﻿namespace DbSeeder.SqlParser.SyntaxTree.Validation.Internal;
 
 public interface INodeValidator
 {

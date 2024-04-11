@@ -1,9 +1,6 @@
-﻿namespace DbSeeder.SqlParser.SyntaxTree.Validation;
+﻿using DbSeeder.SqlParser.SyntaxTree.Validation.Internal;
 
-public interface IValidator
-{
-    public ValidationResult Validate(SyntaxTreeNode tree);
-}
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Validators;
 
 public class GenericTreeValidator : IValidator
 {

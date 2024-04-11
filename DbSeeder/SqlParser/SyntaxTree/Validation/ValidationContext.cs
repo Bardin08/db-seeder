@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Text;
+using DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 namespace DbSeeder.SqlParser.SyntaxTree.Validation;
 

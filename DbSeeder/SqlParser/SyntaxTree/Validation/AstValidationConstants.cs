@@ -18,6 +18,6 @@ public static class AstValidationConstants
             => $"{nodeType} node contains unsupported node of type {unsupportedType}";
 
         public static string InvalidChild(SyntaxTreeNodeType nodeType, IEnumerable<SyntaxTreeNodeType> supportedTypes)
-            => $"{nodeType}'s child should be one of: {supportedTypes.Select(x => x.ToString())}";
+            => $"{nodeType}'s child should be one of: {string.Join(", ", supportedTypes.Select(x => x.ToString()))}";
     }
 }

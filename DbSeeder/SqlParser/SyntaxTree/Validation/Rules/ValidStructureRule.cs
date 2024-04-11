@@ -1,31 +1,28 @@
 ﻿using System.Collections.Frozen;
 
-namespace DbSeeder.SqlParser.SyntaxTree.Validation;
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 public class ValidStructureRule(
     SyntaxTreeNode nodeToValidate,
     HashSet<SyntaxTreeNodeType> allowedChildTypes)
     : IValidStructureRule
 {
-    public SyntaxTreeNode NodeToValidate { get; set; } = nodeToValidate;
-    public HashSet<SyntaxTreeNodeType> AllowedChildTypes { get; set; } = allowedChildTypes;
-
     public void Apply(ValidationContext validationContext)
     {
         // As we use HashSet, unique errors will be stored, so we can't point to the node
         var violations = new HashSet<string>();
-        foreach (var child in NodeToValidate.Children)
+        foreach (var child in nodeToValidate.Children)
         {
             if (child is null)
             {
-                violations.Add(AstValidationConstants.Generic.ChildNullError(SyntaxTreeNodeType.TableColumns));
+                violations.Add(AstValidationConstants.Generic.ChildNullError(nodeToValidate.Type));
                 continue;
             }
 
-            if (!AllowedChildTypes.Contains(child.Type))
+            if (!allowedChildTypes.Contains(child.Type))
             {
                 violations.Add(AstValidationConstants.Generic.InvalidChild(
-                    SyntaxTreeNodeType.TableRoot, AllowedChildTypes));
+                    nodeToValidate.Type, allowedChildTypes));
             }
         }
 

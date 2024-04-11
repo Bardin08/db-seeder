@@ -35,8 +35,8 @@ internal static class Program
 
         PrintSyntaxTree(astRoot);
 
-        var astValidator = new GenericTreeValidator();
-        astValidator.Validate(astRoot);
+        var astValidator = new AstValidator();
+        astValidator.Visit(astRoot);
 
         // var schemaBuilder = new SqlSchemaBuilder();
         // schemaBuilder.BuildSchema(astRoot);
