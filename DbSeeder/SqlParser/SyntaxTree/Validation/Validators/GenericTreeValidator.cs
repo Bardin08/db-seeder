@@ -6,7 +6,8 @@ public class GenericTreeValidator : IValidator
 {
     private readonly List<INodeValidator> _validators =
     [
-        new TreeStructureValidator()
+        new TreeStructureValidator(),
+        new SinglePrimaryKeyValidator()
     ];
 
     public ValidationResult Validate(SyntaxTreeNode tree)

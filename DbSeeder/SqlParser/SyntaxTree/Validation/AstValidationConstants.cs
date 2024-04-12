@@ -3,12 +3,6 @@
 // TODO[#3]: Move this to rsx files for localization
 public static class AstValidationConstants
 {
-    public static class CreateStatement
-    {
-        public static string UnsupportedStatement =>
-            "Now DbSeeder support only create table statements";
-    }
-
     public static class Generic
     {
         public static string ChildNullError(SyntaxTreeNodeType nodeType)

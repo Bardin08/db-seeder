@@ -12,7 +12,7 @@ internal static class Program
             """
             CREATE TABLE Users (
                 Id INT PRIMARY KEY,
-                Name VARCHAR(122) NOT NULL UNIQUE,
+                Name VARCHAR(122) PRIMARY KEY,
                 ProfileId UUID FOREIGN KEY
             );
 
