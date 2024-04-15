@@ -1,4 +1,5 @@
-﻿using DbSeeder.SqlParser;
+﻿using DbSeeder.Schema;
+using DbSeeder.SqlParser;
 using DbSeeder.SqlParser.SyntaxTree;
 using DbSeeder.SqlParser.SyntaxTree.Validation;
 
@@ -12,7 +13,7 @@ internal static class Program
             """
             CREATE TABLE Users (
                 Id INT PRIMARY KEY,
-                Name VARCHAR(122) PRIMARY KEY,
+                Name VARCHAR(122) NOT NULL UNIQUE,
                 ProfileId UUID FOREIGN KEY
             );
 
@@ -38,9 +39,16 @@ internal static class Program
         var astValidator = new AstValidator();
         astValidator.Visit(astRoot);
 
-        // var schemaBuilder = new SqlSchemaBuilder();
-        // schemaBuilder.BuildSchema(astRoot);
-        // Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine();
+
+        var sqlSchema = new SqlSchemaBuilder().Build(astRoot);
+
+        Console.WriteLine("Sql Schema Parsed");
+        foreach (var table in sqlSchema.Tables)
+        {
+            Console.WriteLine($"{table.Name}({string.Join(", ", table.Columns.Select(x => x.Name))})");
+        }
     }
 
     private static void PrintSyntaxTree(SyntaxTreeNode? node, string indent = "")
