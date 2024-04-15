@@ -1,11 +1,10 @@
 ﻿using System.Collections.Frozen;
 
-namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules.SyntaxTree;
 
 public class ValidStructureRule(
     SyntaxTreeNode nodeToValidate,
-    HashSet<SyntaxTreeNodeType> allowedChildTypes)
-    : IValidStructureRule
+    HashSet<SyntaxTreeNodeType> allowedChildTypes) : IValidationRule
 {
     public void Apply(ValidationContext validationContext)
     {

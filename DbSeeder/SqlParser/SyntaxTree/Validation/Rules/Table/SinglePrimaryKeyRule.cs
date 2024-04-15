@@ -1,15 +1,13 @@
 using System.Collections.Frozen;
 
-namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules.Table;
 
 public class SinglePrimaryKeyRule(
     SyntaxTreeNode nodeToValidate,
-    string tableName) : ISinglePrimaryKeyRule
+    string tableName) : IValidationRule
 {
     private int _primaryKeysFound;
     private readonly HashSet<string> _violations = [];
-
-    public string TableName { get; } = tableName;
 
     public void Apply(ValidationContext validationContext)
     {
@@ -24,7 +22,7 @@ public class SinglePrimaryKeyRule(
 
         if (_primaryKeysFound > 1)
         {
-            _violations.Add($"{TableName} contains more than one PRIMARY KEY (x{_primaryKeysFound})");
+            _violations.Add($"{tableName} contains more than one PRIMARY KEY (x{_primaryKeysFound})");
         }
 
         var isValid = _violations.Count is 0;
