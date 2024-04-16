@@ -33,8 +33,9 @@ public class ValidColumnSubTreeRule(
         var hasDuplicates = constraints.Any(p => p.Count() > 1);
         if (hasDuplicates)
         {
-            var duplicates = constraints.Where(c => c.Count() > 1).Select(x => $"{x.Key}(x{x.Count()})");
-            violations.Add($"Column '{nodeToValidate.Value}' has duplicating constraints. Duplicates: {string.Join(", ", duplicates)}");
+            // The given SQL contains `NOT NULL` duplicates for the `Name` attribute.
+            var duplicates = constraints.Where(c => c.Count() > 1).Select(x => x.Key);
+            violations.Add($"Column `{nodeToValidate.Value}` contains duplicates: `{string.Join(", ", duplicates)}`");
         }
 
         var isValid = violations.Count is 0;

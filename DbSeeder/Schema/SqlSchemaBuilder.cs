@@ -72,12 +72,6 @@ public class SqlSchemaBuilder : IAstVisitor
 
     private Column GetColumn(SyntaxTreeNode columnNode)
     {
-        // TODO[#5]: Implement column validation
-        // Rules:
-        //      - has single column name,
-        //      - has single column data type,
-        //      - hasn't duplicated constraints,
-
         var name = columnNode.Value;
         var dataType = string.Empty;
         var dataTypeConstraint = string.Empty;
