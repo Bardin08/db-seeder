@@ -12,13 +12,13 @@ internal static class Program
         const string sqlScript =
             """
             CREATE TABLE Users (
-                Id INT PRIMARY KEY,
+                Id INT AUTO_INCREMENT PRIMARY KEY,
                 Name VARCHAR(122) NOT NULL UNIQUE,
-                ProfileId UUID FOREIGN KEY
+                ProfileId INT
             );
 
             CREATE TABLE Profiles (
-                Id UUID PRIMARY KEY,
+                Id INT PRIMARY KEY,
                 Nickname VARCHAR(122) NOT NULL UNIQUE,
             );
             """;
