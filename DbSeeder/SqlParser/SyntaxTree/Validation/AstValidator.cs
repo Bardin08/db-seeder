@@ -30,6 +30,7 @@ public class AstValidator : IAstVisitor
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(sb.ToString());
             Console.ResetColor();
+            return;
         }
 
         Console.WriteLine("Validation Completed! The syntax tree is valid");

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Frozen;
 
-namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules.SyntaxTree;
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 public class ValidStructureRule(
     SyntaxTreeNode nodeToValidate,

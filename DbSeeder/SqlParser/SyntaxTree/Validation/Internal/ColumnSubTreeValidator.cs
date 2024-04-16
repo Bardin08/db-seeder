@@ -2,17 +2,16 @@ using DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 namespace DbSeeder.SqlParser.SyntaxTree.Validation.Internal;
 
-public class SinglePrimaryKeyValidator : INodeValidator
+public class ColumnSubTreeValidator : INodeValidator
 {
     public void Validate(ValidationContext validationContext, SyntaxTreeNode node)
     {
-        if (node.Type != SyntaxTreeNodeType.TableRoot)
+        if (node.Type != SyntaxTreeNodeType.Column)
         {
             return;
         }
 
-        var tableName = node.Value;
-        var validator = new SinglePrimaryKeyRule(node, tableName);
+        var validator = new ValidColumnSubTreeRule(node);
         validator.Apply(validationContext);
     }
 }

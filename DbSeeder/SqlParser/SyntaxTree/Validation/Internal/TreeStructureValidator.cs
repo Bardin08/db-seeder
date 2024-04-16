@@ -1,4 +1,4 @@
-﻿using DbSeeder.SqlParser.SyntaxTree.Validation.Rules.SyntaxTree;
+﻿using DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 namespace DbSeeder.SqlParser.SyntaxTree.Validation.Internal;
 

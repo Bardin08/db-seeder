@@ -1,6 +1,6 @@
 using System.Collections.Frozen;
 
-namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules.Table;
+namespace DbSeeder.SqlParser.SyntaxTree.Validation.Rules;
 
 public class SinglePrimaryKeyRule(
     SyntaxTreeNode nodeToValidate,

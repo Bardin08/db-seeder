@@ -4,11 +4,27 @@ namespace DbSeeder.SqlParser.SyntaxTree.Validation.Validators;
 
 public class GenericTreeValidator : IValidator
 {
-    private readonly List<INodeValidator> _validators =
+    private static readonly List<INodeValidator> GenericValidators =
     [
-        new TreeStructureValidator(),
-        new SinglePrimaryKeyValidator()
+        new TreeStructureValidator()
     ];
+
+    private static readonly Dictionary<SyntaxTreeNodeType, List<INodeValidator>> Validators =
+        new()
+        {
+            {
+                SyntaxTreeNodeType.TableRoot,
+                [
+                    new SinglePrimaryKeyValidator()
+                ]
+            },
+            {
+                SyntaxTreeNodeType.Column,
+                [
+                    new ColumnSubTreeValidator()
+                ]
+            },
+        };
 
     public ValidationResult Validate(SyntaxTreeNode tree)
     {
@@ -21,7 +37,12 @@ public class GenericTreeValidator : IValidator
 
     private void TraverseSyntaxTree(SyntaxTreeNode node, ValidationContext validationContext)
     {
-        foreach (var validator in _validators)
+        var hasAdditionalValidators = Validators.TryGetValue(node.Type, out var additionalValidators);
+        var allValidators = hasAdditionalValidators
+            ? GenericValidators.Concat(additionalValidators!)
+            : GenericValidators;
+
+        foreach (var validator in allValidators)
         {
             validator.Validate(validationContext, node);
         }
