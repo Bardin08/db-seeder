@@ -1,4 +1,30 @@
-<img src="https://github.com/Bardin08/db-seeder/assets/67170413/7d90d3f8-c9cc-4747-a37b-2dddf49f1778" width="150px"/>
+<table width="100%" border="0">
+<tr>
+  <td valign="top">
+    <img src="https://github.com/Bardin08/db-seeder/assets/67170413/7d90d3f8-c9cc-4747-a37b-2dddf49f1778" width="150px"/>
+  </td>
+      
+  <!-- Images on the Right -->
+  <td valign="center" align="center">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=reliability_rating" alt="Reliability Rating">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=security_rating" alt="Security Rating">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=sqale_rating" alt="Maintainability Rating">    
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=alert_status" alt="Quality Gate Status">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=bugs" alt="Bugs">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=code_smells" alt="Code Smells">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=vulnerabilities" alt="Vulnerabilities">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=duplicated_lines_density" alt="Duplicated Lines (%)">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=Bardin08_db-seeder&metric=coverage" alt="Coverage">
+  </td>
+</tr>
+</table>
+
+
+
+
+
+
+
 
 # DB Seeder
 
