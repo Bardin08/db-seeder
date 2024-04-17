@@ -19,7 +19,7 @@ public static class ParserConstants
 
     public static readonly HashSet<string> Constraints =
     [
-        "PRIMARY KEY", "FOREIGN KEY", "NOT NULL", "UNIQUE"
+        "PRIMARY KEY", "FOREIGN KEY", "NOT NULL", "UNIQUE", "AUTO_INCREMENT"
     ];
 
     public static readonly SearchValues<char> Punctuation = SearchValues.Create("(),.;");

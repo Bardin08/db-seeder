@@ -1,0 +1,81 @@
+﻿name: Run Build and Unit tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'
+
+jobs:
+  main:
+    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      NUGET_PACKAGES: ${{ github.workspace }}/.github/nuget-packages
+
+    steps:
+      - name: 📝 Fetch Sources 📝
+        uses: actions/checkout@v2
+
+      - name: 💡 Perform Common Steps 💡
+        uses: ./.github/workflows/common
+
+      - name: 🛠 Build Solution 🛠
+        shell: bash
+        run: dotnet build
+
+      - name: ✅ Run Unit Tests ✅
+        shell: bash
+        run: dotnet test
+
+      - name: 🚀 Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'zulu'
+
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: 📦 Cache SonarCloud Packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: 🗃️ Cache SonarCloud Scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+
+      - name: 🔧 Install SonarCloud Scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path ~/.sonar/scanner
+
+      - name: 🔧 Install JetBrains dotCover
+        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2023.3.0
+
+      - name: 🏗️ Build and Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ~/.sonar/scanner/dotnet-sonarscanner begin /k:"Bardin08_db-seeder" /o:"bardin08" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html /d:sonar.host.url="https://sonarcloud.io"
+          dotnet build ./DbSeeder.sln
+          dotnet-dotCover cover-dotnet --AttributeFilters="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" --Filters="-:*.Tests" --Output=dotCover.Output.html --ReportType=HTML -- test "./DbSeeder.sln"
+          ~/.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

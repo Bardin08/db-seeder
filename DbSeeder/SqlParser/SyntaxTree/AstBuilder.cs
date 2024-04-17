@@ -84,7 +84,14 @@ public class AstBuilder(List<SqlToken> tokens)
                 AddNode(SyntaxTreeNodeType.TableRoot, token.Value, ref localRoot!);
                 break;
             case SyntaxTreeNodeType.TableColumns:
-                AddNode(SyntaxTreeNodeType.Column, token.Value, ref localRoot!);
+                if (!IsConstraint(token))
+                {
+                    AddNode(SyntaxTreeNodeType.Column, token.Value, ref localRoot!);
+                }
+                else
+                {
+                    BuildConstraint(token, ref localRoot);
+                }
                 break;
             case SyntaxTreeNodeType.Column:
                 AddNode(SyntaxTreeNodeType.ColumnDataType, token.Value, ref localRoot!);
@@ -100,6 +107,25 @@ public class AstBuilder(List<SqlToken> tokens)
         }
     }
 
+    private bool IsConstraint(SqlToken token)
+    {
+        var isConstraintKeyWord = token.Value.Equals("constraint", StringComparison.OrdinalIgnoreCase);
+        var isIdentifier = ParserConstants.Constraints
+            .Any(c => c.Contains(token.Value, StringComparison.OrdinalIgnoreCase));
+
+        return isConstraintKeyWord || isIdentifier;
+    }
+
+    private void BuildConstraint(SqlToken token, ref SyntaxTreeNode localRoot)
+    {
+        Console.WriteLine($"Detected Constraint: {token.Value}");
+
+        AddNode(SyntaxTreeNodeType.ColumnConstraint, token.Value, ref localRoot!);
+
+
+
+    }
+
     private void HandleColumnConstraintIdentifier(SqlToken token, ref SyntaxTreeNode localRoot)
     {
         // Handle composite constraints (e.g., NOT NULL)
@@ -107,6 +133,18 @@ public class AstBuilder(List<SqlToken> tokens)
         {
             var updatedConstraintValue = localRoot.Value + " " + token.Value;
             UpdateColumnConstraintNode(updatedConstraintValue, ref localRoot);
+        }
+        else if (localRoot.Parent?.Type is SyntaxTreeNodeType.TableColumns)
+        {
+            // PRIMARY KEY (id). If we're here, we are looking at the col name.
+            var colsContainerNode = localRoot.Parent;
+
+            colsContainerNode.Children.Remove(localRoot);
+            var constraintOwner = colsContainerNode.Children.First(x => x!.Value.Equals(token.Value))!;
+
+            var temp = new SyntaxTreeNode(localRoot.Type, localRoot.Value, constraintOwner);
+            localRoot = temp;
+            constraintOwner.Children.Add(temp);
         }
         else
         {
@@ -156,6 +194,7 @@ public class AstBuilder(List<SqlToken> tokens)
                     break;
                 case SyntaxTreeNodeType.ColumnConstraint:
                 case SyntaxTreeNodeType.ColumnDataType:
+                case SyntaxTreeNodeType.TableColumns:
                     HandleColumnConstraintOrDataTypePunctuation(token, ref localRoot);
                     break;
                 case SyntaxTreeNodeType.DataTypeConstraint:
@@ -165,7 +204,6 @@ public class AstBuilder(List<SqlToken> tokens)
                 case SyntaxTreeNodeType.Root:
                 case SyntaxTreeNodeType.CreateStatement:
                 case SyntaxTreeNodeType.CreateTable:
-                case SyntaxTreeNodeType.TableColumns:
                 case SyntaxTreeNodeType.Column:
                 default:
                     throw new NotImplementedException($"Punctuation is not expected after '{localRoot.Type}'");
@@ -190,10 +228,13 @@ public class AstBuilder(List<SqlToken> tokens)
         }
         else
         {
-            // For other punctuation, validate and potentially move back to TableColumns
-            EnsureNodeType(
-                ref localRoot,
-                SyntaxTreeNodeType.TableColumns);
+            if (localRoot.Type != SyntaxTreeNodeType.TableColumns)
+            {
+                // For other punctuation, validate and potentially move back to TableColumns
+                EnsureNodeType(
+                    ref localRoot,
+                    SyntaxTreeNodeType.TableColumns);
+            }
         }
     }
 
