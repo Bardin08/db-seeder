@@ -95,7 +95,8 @@ public class SqlSchemaBuilder : IAstVisitor
                     constraints.Add(node.Value);
                     break;
                 case SyntaxTreeNodeType.ForeignKeyDefinition:
-                    // TODO: Implement processing FK constraint correctly
+                    var fkConstraint = $"foreign key {node.Children[1]?.Value}|{node.Children[2]?.Value}";
+                    constraints.Add(fkConstraint);
                     break;
             }
         }

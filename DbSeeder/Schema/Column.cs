@@ -13,17 +13,21 @@ public record Column
 
         constraints = constraints.Select(c => c.ToLower()).ToArray();
         IsAutoIncrement = constraints.Contains("auto_increment", StringComparer.OrdinalIgnoreCase);
-        IsPrimaryKey = constraints.Contains("primary key", StringComparer.OrdinalIgnoreCase);
-        IsForeignKey = constraints.Contains("foreign key", StringComparer.OrdinalIgnoreCase);
         IsNotNull = constraints.Contains("not null", StringComparer.OrdinalIgnoreCase);
         IsUnique = constraints.Contains("unique", StringComparer.OrdinalIgnoreCase);
+        IsPrimaryKey = constraints.Contains("primary key", StringComparer.OrdinalIgnoreCase);
+
+        var fkConstraint = constraints.FirstOrDefault(
+            c => c.StartsWith("foreign key", StringComparison.OrdinalIgnoreCase));
+        IsForeignKey = fkConstraint is not null;
 
         if (IsForeignKey)
         {
-            // TODO[#15]: Update when working on FKs support.
-            // This will cause an exception during table's construction, as 'ref_TableName' won't be in a schema
-            const string refTableName = "ref_TableName";
-            const string refColumnName = "ref_ColumnName";
+            var refTableAndCol = fkConstraint![12..].Split("|");
+
+            var refTableName = refTableAndCol[0];
+            var refColumnName = refTableAndCol[1];
+
             ForeignKeyRef = new ForeignKeyRef(refTableName, refColumnName);
         }
     }
