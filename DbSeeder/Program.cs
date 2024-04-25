@@ -11,18 +11,18 @@ internal static class Program
     {
         const string sqlScript =
             """
+            CREATE TABLE profiles
+            (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                nickname   VARCHAR(122) NOT NULL UNIQUE
+            );
+
             CREATE TABLE users
             (
                 id         INT AUTO_INCREMENT PRIMARY KEY,
                 name       VARCHAR(122) NOT NULL UNIQUE,
                 profile_id INT,
                 FOREIGN KEY (profile_id) REFERENCES profiles(id)
-            );
-
-            CREATE TABLE profiles
-            (
-                id         INT AUTO_INCREMENT PRIMARY KEY,
-                nickname   VARCHAR(122) NOT NULL UNIQUE
             );
             """;
         var lexer = new SqlLexer(sqlScript);

@@ -54,21 +54,19 @@ public class SqlSchemaBuilder : IAstVisitor
     private Table CreateTable(SyntaxTreeNode tableRoot)
     {
         var tableName = tableRoot.Value;
-        var table = new Table(tableName);
+        var table = new Table(tableName, _sqlSchema!);
 
         // Actually, now we expect that table root contains only cols, but in the future more sub-nodes can be added,
         // so we have to be sure that we're working exactly with a node that contains cols.
         var colsRoot = tableRoot.Children.First(x => x?.Type is SyntaxTreeNodeType.TableColumns);
         var cols = ParseColumns(colsRoot!);
-        table.Columns.AddRange(cols);
+        table.AddColumns(cols);
 
         return table;
     }
 
     private IEnumerable<Column> ParseColumns(SyntaxTreeNode colsRoot)
-    {
-        return colsRoot.Children.Select(GetColumn!).ToList();
-    }
+        => colsRoot.Children.Select(GetColumn!).ToList();
 
     private Column GetColumn(SyntaxTreeNode columnNode)
     {
@@ -97,7 +95,8 @@ public class SqlSchemaBuilder : IAstVisitor
                     constraints.Add(node.Value);
                     break;
                 case SyntaxTreeNodeType.ForeignKeyDefinition:
-                    // TODO: Implement processing FK constraint correctly
+                    var fkConstraint = $"foreign key {node.Children[1]?.Value}|{node.Children[2]?.Value}";
+                    constraints.Add(fkConstraint);
                     break;
             }
         }
