@@ -94,6 +94,9 @@ public class SqlSchemaBuilder : IAstVisitor
                 case SyntaxTreeNodeType.ColumnConstraint:
                     constraints.Add(node.Value);
                     break;
+                case SyntaxTreeNodeType.ForeignKeyDefinition:
+                    // TODO: Implement processing FK constraint correctly
+                    break;
             }
         }
 

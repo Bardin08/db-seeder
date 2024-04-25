@@ -13,10 +13,10 @@ internal static class Program
             """
             CREATE TABLE users
             (
-                id         INT AUTO_INCREMENT,
+                id         INT AUTO_INCREMENT PRIMARY KEY,
                 name       VARCHAR(122) NOT NULL UNIQUE,
                 profile_id INT,
-                PRIMARY KEY (id)
+                FOREIGN KEY (profile_id) REFERENCES profiles(id)
             );
 
             CREATE TABLE profiles
