@@ -2,22 +2,53 @@ namespace DbSeeder.SqlParser.SyntaxTree;
 
 public class AstBuilder(List<SqlToken> tokens)
 {
+    private ForeignKeyConstraintBuilder? _fkBuilder;
+
+
+    private readonly SyntaxTreeNode _root = new(SyntaxTreeNodeType.Root, "SQL_Script", null!);
+
+    private SyntaxTreeNode? _localRoot;
+
     public SyntaxTreeNode BuildSyntaxTree()
     {
-        var root = new SyntaxTreeNode(SyntaxTreeNodeType.Root, "SQL_Script", null!);
-        var localRoot = root;
+        _localRoot = _root;
+        _fkBuilder = new ForeignKeyConstraintBuilder();
 
         foreach (var token in tokens)
         {
-            HandleToken(token, root, ref localRoot);
+            HandleToken(token, ref _localRoot);
         }
 
-        return root;
+        return _root;
     }
 
-    private void HandleToken(SqlToken token, SyntaxTreeNode root, ref SyntaxTreeNode? localRoot)
+    private void HandleToken(SqlToken token, ref SyntaxTreeNode? localRoot)
     {
         ArgumentNullException.ThrowIfNull(token);
+
+        if (localRoot.Type is SyntaxTreeNodeType.KeyDefinition)
+        {
+            HandleKeyConstraint(token, ref localRoot);
+            return;
+        }
+        else if (localRoot.Type is SyntaxTreeNodeType.ForeignKeyDefinition)
+        {
+            _fkBuilder!.Handle(token, ref localRoot);
+
+            if (_fkBuilder.IsComplete)
+            {
+                // we have to move FK from the cols' definition to specific col which owns this FK
+                var fkDefinition = _localRoot!.Children.Single(n => n!.Type is SyntaxTreeNodeType.ForeignKeyDefinition);
+                var fkOwner = fkDefinition!.Children.First(); // According to the FK subtree struct owner is the first child of the FK root
+
+                var fkOwnerColRoot = localRoot.Children.Single(c =>
+                    c!.Value.Equals(fkOwner!.Value, StringComparison.OrdinalIgnoreCase));
+
+                localRoot.Children.Remove(fkDefinition);
+                fkOwnerColRoot!.Children.Add(fkDefinition);
+            }
+            return;
+        }
 
         switch (token.Type)
         {
@@ -31,7 +62,7 @@ public class AstBuilder(List<SqlToken> tokens)
                 HandleNumber(token, ref localRoot!);
                 break;
             case SqlTokenType.Punctuation:
-                HandlePunctuation(token, root, ref localRoot!);
+                HandlePunctuation(token, ref localRoot!);
                 break;
             case SqlTokenType.StringLiteral:
             case SqlTokenType.Operator:
@@ -90,8 +121,10 @@ public class AstBuilder(List<SqlToken> tokens)
                 }
                 else
                 {
-                    BuildConstraint(token, ref localRoot);
+                    // Here can be another constraints created with a CONSTRAINT keyword, but they're not supported yet
+                    BuildKeyConstraint(token, ref localRoot);
                 }
+
                 break;
             case SyntaxTreeNodeType.Column:
                 AddNode(SyntaxTreeNodeType.ColumnDataType, token.Value, ref localRoot!);
@@ -102,9 +135,56 @@ public class AstBuilder(List<SqlToken> tokens)
             case SyntaxTreeNodeType.ColumnConstraint:
                 HandleColumnConstraintIdentifier(token, ref localRoot);
                 break;
+            case SyntaxTreeNodeType.KeyDefinition:
+                HandleKeyConstraint(token, ref localRoot);
+                break;
+            case SyntaxTreeNodeType.ForeignKeyDefinition:
+                HandleForeignKeyToken(token);
+                break;
+            case SyntaxTreeNodeType.PrimaryKeyDefinition:
+                HandlePrimaryKeyToken(token, ref localRoot);
+                break;
             default:
                 throw new NotImplementedException($"Unhandled localRoot type for identifier: {localRoot.Type}");
         }
+    }
+
+    private void HandlePrimaryKeyToken(SqlToken token, ref SyntaxTreeNode localRoot)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HandleForeignKeyToken(SqlToken token)
+    {
+        _fkBuilder!.Handle(token, ref _localRoot!);
+    }
+
+    private void HandleKeyConstraint(SqlToken token, ref SyntaxTreeNode localRoot)
+    {
+        if (localRoot.Value.Contains("FOREIGN", StringComparison.OrdinalIgnoreCase))
+        {
+            _fkBuilder!.Handle(token, ref localRoot);
+        }
+
+        // if (token.Value.Equals("KEY", StringComparison.OrdinalIgnoreCase) &&
+        //     !localRoot.Value.Contains("KEY", StringComparison.OrdinalIgnoreCase))
+        // {
+        //     var isPrimaryKey = localRoot.Value.Contains("PRIMARY", StringComparison.OrdinalIgnoreCase);
+        //     var nodeType = isPrimaryKey
+        //         ? SyntaxTreeNodeType.PrimaryKeyDefinition
+        //         : SyntaxTreeNodeType.ForeignKeyDefinition;
+        //     var nodeValue = string.Concat(localRoot.Value.Trim(), " ", token.Value);
+        //     var newNode = new SyntaxTreeNode(nodeType, nodeValue, localRoot.Parent);
+        //     newNode.Children.AddRange(localRoot.Children);
+        // 
+        //     var tempNode = localRoot;
+        //     localRoot = newNode;
+        // 
+        //     // Update parent with a new sub node
+        //     var parent = localRoot.Parent!;
+        //     parent.Children.Remove(tempNode);
+        //     parent.Children.Add(newNode);
+        // }
     }
 
     private bool IsConstraint(SqlToken token)
@@ -116,14 +196,10 @@ public class AstBuilder(List<SqlToken> tokens)
         return isConstraintKeyWord || isIdentifier;
     }
 
-    private void BuildConstraint(SqlToken token, ref SyntaxTreeNode localRoot)
+    private void BuildKeyConstraint(SqlToken token, ref SyntaxTreeNode localRoot)
     {
-        Console.WriteLine($"Detected Constraint: {token.Value}");
-
-        AddNode(SyntaxTreeNodeType.ColumnConstraint, token.Value, ref localRoot!);
-
-
-
+        // We temporarily add this constraint to the cols' root
+        AddNode(SyntaxTreeNodeType.KeyDefinition, token.Value, ref localRoot!);
     }
 
     private void HandleColumnConstraintIdentifier(SqlToken token, ref SyntaxTreeNode localRoot)
@@ -137,14 +213,34 @@ public class AstBuilder(List<SqlToken> tokens)
         else if (localRoot.Parent?.Type is SyntaxTreeNodeType.TableColumns)
         {
             // PRIMARY KEY (id). If we're here, we are looking at the col name.
-            var colsContainerNode = localRoot.Parent;
 
-            colsContainerNode.Children.Remove(localRoot);
-            var constraintOwner = colsContainerNode.Children.First(x => x!.Value.Equals(token.Value))!;
+            if (localRoot.Value.Equals("FOREIGN KEY", StringComparison.OrdinalIgnoreCase))
+            {
+                // This is a FOREIGN KEY CONSTRAINT, so we have to handle it appropriately.
+                // FOREIGN KEY definition statement looks like:
+                //
+                // FOREIGN KEY id REFERENCES profiles(user_id)
 
-            var temp = new SyntaxTreeNode(localRoot.Type, localRoot.Value, constraintOwner);
-            localRoot = temp;
-            constraintOwner.Children.Add(temp);
+                if (token.Type is SqlTokenType.Identifier)
+                {
+                    localRoot.AddChild(new SyntaxTreeNode(SyntaxTreeNodeType.KeyColumnIdentifier, token.Value,
+                        localRoot));
+                }
+
+                Console.WriteLine("We are parsing FK constraint");
+            }
+
+            else if (localRoot.Value.Equals("PRIMARY KEY", StringComparison.OrdinalIgnoreCase))
+            {
+                var colsContainerNode = localRoot.Parent;
+
+                colsContainerNode.Children.Remove(localRoot);
+                var constraintOwner = colsContainerNode.Children.First(x => x!.Value.Equals(token.Value))!;
+
+                var temp = new SyntaxTreeNode(localRoot.Type, localRoot.Value, constraintOwner);
+                localRoot = temp;
+                constraintOwner.Children.Add(temp);
+            }
         }
         else
         {
@@ -174,21 +270,22 @@ public class AstBuilder(List<SqlToken> tokens)
 
     #region Punctuation
 
-    private void HandlePunctuation(SqlToken token, SyntaxTreeNode root, ref SyntaxTreeNode localRoot)
+    private void HandlePunctuation(SqlToken token, ref SyntaxTreeNode localRoot)
     {
-        ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(_root);
         ArgumentNullException.ThrowIfNull(localRoot);
 
         var isStatementClosingBracket = token.Value.Equals(")") && localRoot.Type is SyntaxTreeNodeType.TableColumns;
         if (token.Value.Equals(";") || isStatementClosingBracket)
         {
             // Reset to root on statement end
-            localRoot = root;
+            localRoot = _root;
         }
         else
         {
             switch (localRoot.Type)
             {
+                // TODO: Add Key Token Type Constraint
                 case SyntaxTreeNodeType.TableRoot:
                     HandleTableRootPunctuation(ref localRoot);
                     break;
@@ -201,6 +298,11 @@ public class AstBuilder(List<SqlToken> tokens)
                     // Move back to the direct parent (likely ColumnDataType)
                     localRoot = localRoot.Parent!;
                     break;
+                case SyntaxTreeNodeType.KeyDefinition:
+                case SyntaxTreeNodeType.ForeignKeyDefinition:
+                case SyntaxTreeNodeType.PrimaryKeyDefinition:
+                    HandleKeyConstraintPunctuation(token, ref localRoot);
+                    break;
                 case SyntaxTreeNodeType.Root:
                 case SyntaxTreeNodeType.CreateStatement:
                 case SyntaxTreeNodeType.CreateTable:
@@ -208,6 +310,14 @@ public class AstBuilder(List<SqlToken> tokens)
                 default:
                     throw new NotImplementedException($"Punctuation is not expected after '{localRoot.Type}'");
             }
+        }
+    }
+
+    private void HandleKeyConstraintPunctuation(SqlToken token, ref SyntaxTreeNode localRoot)
+    {
+        if (token.Value.Equals("("))
+        {
+            // just skip
         }
     }
 
@@ -276,7 +386,7 @@ public class AstBuilder(List<SqlToken> tokens)
     }
 
     #endregion
-    
+
     private void AddNode(SyntaxTreeNodeType type, string value, ref SyntaxTreeNode? currentRootNode)
     {
         var newNode = new SyntaxTreeNode(type, value, currentRootNode);

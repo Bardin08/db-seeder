@@ -14,5 +14,13 @@ public enum SyntaxTreeNodeType
     ColumnDataType,
     ColumnConstraint,
 
-    DataTypeConstraint
+    DataTypeConstraint,
+
+    KeyDefinition,
+    KeyReferencedTable,
+    KeyColumnIdentifier,
+    KeyReferencedColumn,
+
+    PrimaryKeyDefinition,
+    ForeignKeyDefinition
 }
