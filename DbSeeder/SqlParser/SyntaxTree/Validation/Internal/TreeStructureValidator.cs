@@ -11,10 +11,23 @@ public class TreeStructureValidator : INodeValidator
         { SyntaxTreeNodeType.CreateTable, [SyntaxTreeNodeType.TableRoot] },
         { SyntaxTreeNodeType.TableRoot, [SyntaxTreeNodeType.TableColumns] },
         { SyntaxTreeNodeType.TableColumns, [SyntaxTreeNodeType.Column] },
-        { SyntaxTreeNodeType.Column, [SyntaxTreeNodeType.ColumnDataType, SyntaxTreeNodeType.ColumnConstraint] },
+        { SyntaxTreeNodeType.Column, [
+            SyntaxTreeNodeType.ColumnDataType,
+            SyntaxTreeNodeType.ColumnConstraint,
+            SyntaxTreeNodeType.ForeignKeyDefinition] },
         { SyntaxTreeNodeType.ColumnDataType, [SyntaxTreeNodeType.DataTypeConstraint] },
         { SyntaxTreeNodeType.DataTypeConstraint, [] },
         { SyntaxTreeNodeType.ColumnConstraint, [] },
+        {
+            SyntaxTreeNodeType.ForeignKeyDefinition, [
+                SyntaxTreeNodeType.KeyColumnIdentifier,
+                SyntaxTreeNodeType.KeyReferencedTable,
+                SyntaxTreeNodeType.KeyReferencedColumn
+            ]
+        },
+        { SyntaxTreeNodeType.KeyColumnIdentifier, [] },
+        { SyntaxTreeNodeType.KeyReferencedTable, [] },
+        { SyntaxTreeNodeType.KeyReferencedColumn, [] }
     };
 
     public void Validate(ValidationContext validationContext, SyntaxTreeNode node)
