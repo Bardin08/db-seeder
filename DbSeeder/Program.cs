@@ -1,4 +1,5 @@
 ﻿using DbSeeder.Data;
+using DbSeeder.Data.Sql;
 using DbSeeder.Schema;
 using DbSeeder.SqlParser;
 using DbSeeder.SqlParser.SyntaxTree;
