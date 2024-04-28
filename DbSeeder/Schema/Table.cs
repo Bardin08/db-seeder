@@ -5,6 +5,7 @@ public class Table(string name, SqlSchema schema)
     private readonly List<Column> _columns = [];
     private readonly List<ForeignKey> _foreignKeys = [];
 
+    // TODO[#21]: Implement key define logic if not specified manually
     // There are some rules how to deal if PK is not defined
     // ex: find the first attribute with NOT NULL & UNIQUE constraints
     public PrimaryKey? PrimaryKey { get; private set; }
