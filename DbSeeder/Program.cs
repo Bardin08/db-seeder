@@ -26,6 +26,15 @@ internal static class Program
                 profile_id INT,
                 FOREIGN KEY (profile_id) REFERENCES profiles(id)
             );
+
+            CREATE TABLE activity
+            (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                profile_id  INT,
+                user_id     INT,
+                FOREIGN KEY (profile_id) REFERENCES profiles(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
             """;
         var lexer = new SqlLexer(sqlScript);
         var tokens = lexer.Tokenize();
@@ -57,10 +66,10 @@ internal static class Program
 
         Console.WriteLine("\n\n\t\t// --- Data Generation --- \\\\");
         var generator = new SqlQueryGenerator();
-        for (var i = 0; i < 15; i++)
+        for (var i = 0; i < 1; i++)
         {
-            var profile = generator.Generate(sqlSchema.Tables.First(x => x.Name == "users"));
-            Console.WriteLine("\t {0}", profile);
+            var profile = generator.Generate(sqlSchema.GetTableByName("activity")!);
+            Console.WriteLine("\n-------\n\n{0}\n-------\n", profile);
         }
     }
 

@@ -116,4 +116,10 @@ public class ForeignKeyConstraintBuilder
 
         _lastAddedNode = _constraintLocalRoot;
     }
+
+    public void Reset()
+    {
+        IsComplete = _referenceKeywordMet = false;
+        _constraintLocalRoot = _lastAddedNode = null;
+    }
 }

@@ -71,5 +71,5 @@ public class Table(string name, SqlSchema schema)
     }
 
     private Column? GetColumnByName(string columnName)
-        => Columns.FirstOrDefault(c => c.Name.Equals(columnName, StringComparison.Ordinal));
+        => Columns.SingleOrDefault(c => c.Name.Equals(columnName, StringComparison.Ordinal));
 }
