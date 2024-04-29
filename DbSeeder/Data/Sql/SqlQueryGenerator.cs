@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using DbSeeder.Schema;
-using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Security;
 
 namespace DbSeeder.Data.Sql;
 
@@ -46,7 +44,54 @@ internal class SqlQueryGenerator : ISqlDataGenerator
             return new InsertSqlQuery(table.Name, generatedValues);
         }
 
+        return GenerateRelated(table, generationContextId, generatedValues);
+    }
 
+    private InsertSqlQuery? GenerateRelatedData(
+        Guid generatedContextId,
+        IReadOnlyDictionary<string, string> referencerValues,
+        ForeignKey fk)
+    {
+        var generatedContext = _generationContextBuffer[generatedContextId];
+        if (generatedContext.TryGetValue(fk.RefTable.Name, out var existedRecord))
+        {
+            return null;
+        }
+
+        var insertSqlQuery = GenerateInternal(fk.RefTable, generatedContextId);
+
+        insertSqlQuery = UpdateInsertQueryValues(insertSqlQuery, referencerValues, fk.RefColumn.Name, fk.Column.Name);
+
+        generatedContext.TryAdd(insertSqlQuery.Table, insertSqlQuery);
+
+        var hasReferencedTables = fk.RefTable.ForeignKeys.Any();
+        if (!hasReferencedTables)
+        {
+            return insertSqlQuery;
+        }
+
+        return GenerateRelated(fk.RefTable, generatedContextId, insertSqlQuery.Value.ToDictionary());
+    }
+
+    private static InsertSqlQuery UpdateInsertQueryValues(
+        InsertSqlQuery insertSqlQuery,
+        IReadOnlyDictionary<string, string> referencerValues,
+        string src,
+        string dest)
+    {
+        var updatedValue = new Dictionary<string, string>(insertSqlQuery.Value)
+        {
+            [src] = referencerValues[dest]
+        };
+        insertSqlQuery = insertSqlQuery with { Value = updatedValue };
+        return insertSqlQuery;
+    }
+
+    private InsertSqlQuery GenerateRelated(
+        Table table,
+        Guid generationContextId,
+        Dictionary<string, string> generatedValues)
+    {
         var relatedDataInsertQueries = new List<InsertSqlQuery>();
         foreach (var fk in table.ForeignKeys)
         {
@@ -67,48 +112,6 @@ internal class SqlQueryGenerator : ISqlDataGenerator
         }
 
         return new InsertSqlQuery(table.Name, generatedValues, relatedDataInsertQueries.AsReadOnly());
-    }
-
-    private InsertSqlQuery? GenerateRelatedData(
-        Guid generatedContextId,
-        IReadOnlyDictionary<string, string> referencerValues,
-        ForeignKey fk)
-    {
-        var generatedContext = _generationContextBuffer[generatedContextId];
-        if (generatedContext.TryGetValue(fk.RefTable.Name, out var existedRecord))
-        {
-            return null;
-        }
-
-        var insertSqlQuery = GenerateInternal(fk.RefTable, generatedContextId);
-
-        // set up the proper reference (col == refCol value);
-        // To get the col's value that was generated earlier, we have to pass the context
-        var valuesWithValidFkValue = insertSqlQuery.Value.ToDictionary();
-        valuesWithValidFkValue[fk.RefColumn.Name] = referencerValues[fk.Column.Name];
-        insertSqlQuery = insertSqlQuery with { Value = valuesWithValidFkValue };
-
-        generatedContext.TryAdd(insertSqlQuery.Table, insertSqlQuery);
-
-        var hasReferencedTables = fk.RefTable.ForeignKeys.Any();
-        if (hasReferencedTables)
-        {
-            foreach (var intFk in fk.RefTable.ForeignKeys)
-            {
-                var relatedDataInsertQuery = GenerateRelatedData(
-                    generatedContextId, insertSqlQuery.Value, intFk);
-
-                if (relatedDataInsertQuery is not null)
-                {
-                    insertSqlQuery = insertSqlQuery with
-                    {
-                        RelatedQueries = [relatedDataInsertQuery]
-                    };
-                }
-            }
-        }
-
-        return insertSqlQuery;
     }
 
     public IAsyncEnumerable<InsertSqlQuery> GenerateMultiple(Table table, int count)
