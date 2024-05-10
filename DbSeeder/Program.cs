@@ -66,7 +66,7 @@ internal static class Program
 
         Console.WriteLine("\n\n\t\t// --- Data Generation --- \\\\");
         var generator = new SqlQueryGenerator();
-        for (var i = 0; i < 1; i++)
+        for (var i = 0; i < 10; i++)
         {
             var profile = generator.Generate(sqlSchema.GetTableByName("activity")!);
             Console.WriteLine("\n-------\n\n{0}\n-------\n", profile);

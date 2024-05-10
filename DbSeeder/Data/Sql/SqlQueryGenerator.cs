@@ -34,8 +34,8 @@ internal class SqlQueryGenerator : ISqlDataGenerator
         var generatedValues = new Dictionary<string, string>();
         foreach (var col in cols.ToList())
         {
-            var (_, func) = GeneratorFactory.GetGeneratorByColumn(col);
-            generatedValues.Add(col.Name, func().ToString()!);
+            var value = GeneratorFactory.GetGeneratorByColumnV2(col);
+            generatedValues.Add(col.Name, value?.ToString() ?? "null");
         }
 
         var hasReferencedTables = table.ForeignKeys.Any();
@@ -44,33 +44,29 @@ internal class SqlQueryGenerator : ISqlDataGenerator
             return new InsertSqlQuery(table.Name, generatedValues);
         }
 
-        return GenerateRelated(table, generationContextId, generatedValues);
+        return GenerateForeignSubKeys(table, generationContextId, generatedValues);
     }
 
-    private InsertSqlQuery? GenerateRelatedData(
+    private InsertSqlQuery? GenerateForeignKey(
         Guid generatedContextId,
         IReadOnlyDictionary<string, string> referencerValues,
         ForeignKey fk)
     {
         var generatedContext = _generationContextBuffer[generatedContextId];
-        if (generatedContext.TryGetValue(fk.RefTable.Name, out var existedRecord))
+        if (generatedContext.ContainsKey(fk.RefTable.Name))
         {
             return null;
         }
 
         var insertSqlQuery = GenerateInternal(fk.RefTable, generatedContextId);
-
         insertSqlQuery = UpdateInsertQueryValues(insertSqlQuery, referencerValues, fk.RefColumn.Name, fk.Column.Name);
 
         generatedContext.TryAdd(insertSqlQuery.Table, insertSqlQuery);
 
         var hasReferencedTables = fk.RefTable.ForeignKeys.Any();
-        if (!hasReferencedTables)
-        {
-            return insertSqlQuery;
-        }
-
-        return GenerateRelated(fk.RefTable, generatedContextId, insertSqlQuery.Value.ToDictionary());
+        return !hasReferencedTables
+            ? insertSqlQuery
+            : GenerateForeignSubKeys(fk.RefTable, generatedContextId, insertSqlQuery.Value.ToDictionary());
     }
 
     private static InsertSqlQuery UpdateInsertQueryValues(
@@ -87,7 +83,7 @@ internal class SqlQueryGenerator : ISqlDataGenerator
         return insertSqlQuery;
     }
 
-    private InsertSqlQuery GenerateRelated(
+    private InsertSqlQuery GenerateForeignSubKeys(
         Table table,
         Guid generationContextId,
         Dictionary<string, string> generatedValues)
@@ -102,7 +98,7 @@ internal class SqlQueryGenerator : ISqlDataGenerator
                 continue;
             }
 
-            var relatedDataInsertQuery = GenerateRelatedData(
+            var relatedDataInsertQuery = GenerateForeignKey(
                 generationContextId, generatedValues, fk);
 
             if (relatedDataInsertQuery is not null)
@@ -124,11 +120,3 @@ internal class SqlQueryGenerator : ISqlDataGenerator
         throw new NotImplementedException();
     }
 }
-
-// --> insert into {table}
-//     value ( { string.Join(",", Values[i]) } );
-
-// --> insert into {table}
-//     values (
-//          foreach Values[i]: {string.Join(",", Values[i])}
-//     );
