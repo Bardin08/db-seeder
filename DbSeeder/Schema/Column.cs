@@ -1,3 +1,5 @@
+using ZstdSharp.Unsafe;
+
 namespace DbSeeder.Schema;
 
 public record Column

@@ -1,4 +1,6 @@
-﻿using DbSeeder.Schema;
+﻿using DbSeeder.Data;
+using DbSeeder.Data.Sql;
+using DbSeeder.Schema;
 using DbSeeder.SqlParser;
 using DbSeeder.SqlParser.SyntaxTree;
 using DbSeeder.SqlParser.SyntaxTree.Validation;
@@ -24,6 +26,15 @@ internal static class Program
                 profile_id INT,
                 FOREIGN KEY (profile_id) REFERENCES profiles(id)
             );
+
+            CREATE TABLE activity
+            (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                profile_id  INT,
+                user_id     INT,
+                FOREIGN KEY (profile_id) REFERENCES profiles(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
             """;
         var lexer = new SqlLexer(sqlScript);
         var tokens = lexer.Tokenize();
@@ -47,10 +58,18 @@ internal static class Program
 
         var sqlSchema = new SqlSchemaBuilder().Build(astRoot);
 
-        Console.WriteLine("Sql Schema Parsed");
+        Console.WriteLine("\t\t // --- Sql Schema Parsed --- \\\\");
         foreach (var table in sqlSchema.Tables)
         {
-            Console.WriteLine($"{table.Name}({string.Join(", ", table.Columns.Select(x => x.Name))})");
+            Console.WriteLine($"\t --> {table.Name}({string.Join(", ", table.Columns.Select(x => x.Name))})");
+        }
+
+        Console.WriteLine("\n\n\t\t// --- Data Generation --- \\\\");
+        var generator = new SqlQueryGenerator();
+        for (var i = 0; i < 10; i++)
+        {
+            var profile = generator.Generate(sqlSchema.GetTableByName("activity")!);
+            Console.WriteLine("\n-------\n\n{0}\n-------\n", profile);
         }
     }
 

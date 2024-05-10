@@ -46,6 +46,7 @@ public class AstBuilder(List<SqlToken> tokens)
 
                 localRoot.Children.Remove(fkDefinition);
                 fkOwnerColRoot!.Children.Add(fkDefinition);
+                _fkBuilder.Reset();
             }
             return;
         }
