@@ -15,12 +15,6 @@ public static class DataGeneratorsEvaluator
         {
             foreach (var generator in generatorsCategory)
             {
-                if (generator.Params.Count != 0)
-                {
-                    // TODO[#26]: Implement generators with params
-                    continue;
-                }
-
                 var weight = CalculateLevenshteinDistance(column.Name, generator.GeneratorIdentifier);
                 if (!weights.ContainsKey(weight))
                 {

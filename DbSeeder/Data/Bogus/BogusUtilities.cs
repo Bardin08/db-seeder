@@ -92,16 +92,16 @@ public static class BogusUtilities
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
             if (generatorMethod != null)
             {
+                var @params = (object[])null!;
+
                 var parameters = generatorMethod.GetParameters();
                 if (parameters.Length > 0)
                 {
-                    // TODO[#26]: Implement generators with params
-                    throw new NotImplementedException("This feature is currently not implemented. " +
-                                                      "Only parameterless generators can be used");
+                    @params = ParamsGenerator.GetParams(generator.GeneratorIdentifier);
                 }
 
                 // TODO[#27]: Implement constraints handling
-                var result = generatorMethod.Invoke(categoryGenerator, null);
+                var result = generatorMethod.Invoke(categoryGenerator, @params);
                 return Convert.ChangeType(result, generatorMethod.ReturnType)!;
             }
 
