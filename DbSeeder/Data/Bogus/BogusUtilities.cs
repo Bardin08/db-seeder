@@ -17,9 +17,9 @@ public static class BogusUtilities
         }
     };
 
-    public static Dictionary<string, List<BogusGenerator>> GetBogusGenerators()
+    public static Dictionary<string, List<BogusGeneratorDescriptor>> GetBogusGenerators()
     {
-        var generators = new Dictionary<string, List<BogusGenerator>>();
+        var generators = new Dictionary<string, List<BogusGeneratorDescriptor>>();
 
         var fakerType = typeof(Faker);
 
@@ -44,7 +44,7 @@ public static class BogusUtilities
             foreach (var m in methods)
             {
                 var methodParams = m.GetParameters().ToDictionary(x => x.Name!, x => x.ParameterType);
-                var generator = new BogusGenerator(
+                var generator = new BogusGeneratorDescriptor(
                     generatorCategory,
                     generatorCategory + m.Name.ToLower(),
                     m.ReturnType,
@@ -57,12 +57,12 @@ public static class BogusUtilities
         return generators;
     }
 
-    public static Dictionary<string, List<BogusGenerator>> GetFiltersForReturnType(
-        this Dictionary<string, List<BogusGenerator>> src, string returnType)
+    public static Dictionary<string, List<BogusGeneratorDescriptor>> GetFiltersForReturnType(
+        this Dictionary<string, List<BogusGeneratorDescriptor>> src, string returnType)
     {
         var allowed = AllowedTypes[returnType];
 
-        var allowedGenerators = new Dictionary<string, List<BogusGenerator>>();
+        var allowedGenerators = new Dictionary<string, List<BogusGeneratorDescriptor>>();
         foreach (var (category, generators) in src)
         {
             allowedGenerators.Add(category, []);
@@ -78,12 +78,12 @@ public static class BogusUtilities
         return allowedGenerators;
     }
 
-    public static dynamic? Generate(BogusGenerator generator)
+    public static dynamic? Generate(BogusGeneratorDescriptor generatorDescriptor)
     {
         var faker = new Faker();
-        var generationMethod = generator.GeneratorIdentifier[generator.Category.Length..];
+        var generationMethod = generatorDescriptor.GeneratorIdentifier[generatorDescriptor.Category.Length..];
 
-        var generatorProperty = faker.GetType().GetProperty(generator.Category,
+        var generatorProperty = faker.GetType().GetProperty(generatorDescriptor.Category,
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
         if (generatorProperty != null)
         {
@@ -97,7 +97,7 @@ public static class BogusUtilities
                 var parameters = generatorMethod.GetParameters();
                 if (parameters.Length > 0)
                 {
-                    @params = ParamsGenerator.GetParams(generator.GeneratorIdentifier);
+                    @params = ParamsGenerator.GetParams(generatorDescriptor.GeneratorIdentifier);
                 }
 
                 // TODO[#27]: Implement constraints handling
@@ -105,11 +105,11 @@ public static class BogusUtilities
                 return Convert.ChangeType(result, generatorMethod.ReturnType)!;
             }
 
-            Console.WriteLine($"Method '{generationMethod}' not found in '{generator.Category}' category");
+            Console.WriteLine($"Method '{generationMethod}' not found in '{generatorDescriptor.Category}' category");
         }
         else
         {
-            Console.WriteLine($"Category '{generator.Category}' not found on Faker object");
+            Console.WriteLine($"Category '{generatorDescriptor.Category}' not found on Faker object");
         }
 
         return null;

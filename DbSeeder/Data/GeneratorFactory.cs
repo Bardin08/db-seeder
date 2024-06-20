@@ -18,7 +18,7 @@ internal static class GeneratorFactory
     private static readonly HashSet<string> OtherTypes =
         ["uniqueidentifier", "timestamp", "xml", "udt", "structured", "variant"];
 
-    private static readonly Dictionary<string, List<BogusGenerator>> Generators = BogusUtilities.GetBogusGenerators();
+    private static readonly Dictionary<string, List<BogusGeneratorDescriptor>> Generators = BogusUtilities.GetBogusGenerators();
 
     public static object? GetGeneratorByColumnV2(Column col)
     {

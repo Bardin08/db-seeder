@@ -4,12 +4,12 @@ namespace DbSeeder.Data.Bogus;
 
 public static class DataGeneratorsEvaluator
 {
-    public static List<BogusGenerator> FindBestNGenerators(
-        this Dictionary<string, List<BogusGenerator>> allGenerators,
+    public static List<BogusGeneratorDescriptor> FindBestNGenerators(
+        this Dictionary<string, List<BogusGeneratorDescriptor>> allGenerators,
         Column column,
         int n = 1)
     {
-        var weights = new Dictionary<int, List<BogusGenerator>>();
+        var weights = new Dictionary<int, List<BogusGeneratorDescriptor>>();
 
         foreach (var (_, generatorsCategory) in allGenerators)
         {
