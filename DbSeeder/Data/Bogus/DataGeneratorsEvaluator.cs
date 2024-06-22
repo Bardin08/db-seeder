@@ -4,23 +4,17 @@ namespace DbSeeder.Data.Bogus;
 
 public static class DataGeneratorsEvaluator
 {
-    public static List<BogusGenerator> FindBestNGenerators(
-        this Dictionary<string, List<BogusGenerator>> allGenerators,
+    public static List<BogusGeneratorDescriptor> FindBestNGenerators(
+        this Dictionary<string, List<BogusGeneratorDescriptor>> allGenerators,
         Column column,
         int n = 1)
     {
-        var weights = new Dictionary<int, List<BogusGenerator>>();
+        var weights = new Dictionary<int, List<BogusGeneratorDescriptor>>();
 
         foreach (var (_, generatorsCategory) in allGenerators)
         {
             foreach (var generator in generatorsCategory)
             {
-                if (generator.Params.Count != 0)
-                {
-                    // TODO[#26]: Implement generators with params
-                    continue;
-                }
-
                 var weight = CalculateLevenshteinDistance(column.Name, generator.GeneratorIdentifier);
                 if (!weights.ContainsKey(weight))
                 {
