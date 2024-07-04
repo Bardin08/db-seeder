@@ -1,6 +1,6 @@
 namespace DbSeeder.Data.Bogus;
 
-public record BogusGenerator(
+public record BogusGeneratorDescriptor(
     string Category,
     string GeneratorIdentifier,
     Type ReturnType,

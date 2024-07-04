@@ -1,4 +1,3 @@
-using System.Data;
 using DbSeeder.Data.Bogus;
 using DbSeeder.Schema;
 
@@ -17,9 +16,9 @@ internal static class GeneratorFactory
         ["datetime", "smalldatetime", "date", "time", "datetime2", "datetimeoffset"];
 
     private static readonly HashSet<string> OtherTypes =
-            ["uniqueidentifier", "timestamp", "xml", "udt", "structured", "variant"];
+        ["uniqueidentifier", "timestamp", "xml", "udt", "structured", "variant"];
 
-    private static readonly Dictionary<string, List<BogusGenerator>> Generators = BogusUtilities.GetBogusGenerators();
+    private static readonly Dictionary<string, List<BogusGeneratorDescriptor>> Generators = BogusUtilities.GetBogusGenerators();
 
     public static object? GetGeneratorByColumnV2(Column col)
     {
@@ -35,23 +34,9 @@ internal static class GeneratorFactory
         }
 
         // semantic filter
-        var generator = generators.FindBestNGenerators(col, n: 1).First();
-        var generatedValue = (object?)BogusUtilities.Generate(generator);
+        var selectedGenerators = generators.FindBestNGenerators(col, n: 3);
+        var firstGenerator = selectedGenerators.First();
+        var generatedValue = (object?)BogusUtilities.Generate(firstGenerator);
         return generatedValue;
-    }
-
-    public static (Type, Func<object>) GetGeneratorByColumn(Column col)
-    {
-        if (StringTypes.Contains(col.DataType, StringComparer.OrdinalIgnoreCase))
-        {
-            return (typeof(string), () => Guid.NewGuid().ToString("N"));
-        }
-
-        if (NumeralTypes.Contains(col.DataType, StringComparer.OrdinalIgnoreCase)) // add type limits check
-        {
-            return (typeof(long), () => Random.Shared.NextInt64() * 17);
-        }
-
-        throw new NotImplementedException($"{col.DataType} is not currently supported");
     }
 }
